@@ -6,8 +6,7 @@
   <title>CampusRide - College Bus Tracker</title>
   
   <!-- Official Google Maps SDK -->
-  <!-- Official Google Maps SDK -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuzSJx40q1GzH2RZ-EZCE9iRzl-xkaQho&libraries=geometry"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuzSJx40q1GzH2RZ-EZCE9iRzl-xkaQho"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
@@ -114,70 +113,54 @@
     .announce-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 
     /* Map View Layout */
-    #mapView { position: relative; padding-bottom: 0; height: 100vh; overflow: hidden; }
-    #trackingMap { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-
-    /* Clean Floating Bus Status Bar */
-    .clean-bus-bar {
-      position: absolute;
-      top: 65px;
-      left: 14px;
-      right: 14px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 10px 16px;
-      z-index: 20;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-      border: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    #mapView {
+      position: relative;
+      padding-bottom: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #e5e7eb;
     }
-    .clean-bus-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
-    .clean-bus-actions { display: flex; align-items: center; gap: 10px; }
-    .icon-map-launch { background: var(--bg); border: 1px solid var(--border); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 18px; cursor: pointer; }
 
-    /* Collapsible Bottom Route Sheet (Where Is My Train Style) */
-    .collapsible-sheet {
+    #trackingMap {
+      width: 100%;
+      height: 100%;
       position: absolute;
-      bottom: 65px;
+      top: 0;
       left: 0;
-      right: 0;
-      background: var(--surface);
-      border-top-left-radius: 22px;
-      border-top-right-radius: 22px;
-      box-shadow: 0 -6px 25px rgba(0,0,0,0.12);
-      z-index: 30;
-      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      max-height: 48vh;
-      display: flex;
-      flex-direction: column;
+      z-index: 1;
     }
-    .collapsible-sheet.collapsed { max-height: 84px; }
-    .sheet-handle-bar {
-      padding: 10px 20px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-    .sheet-drag-pill { width: 36px; height: 4px; background: #cbd5e1; border-radius: 3px; margin-bottom: 8px; }
-    .sheet-header-summary { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-    
-    .sheet-body { flex: 1; overflow-y: auto; padding: 14px 20px 24px; }
 
-    /* Train-style Stop Timeline */
-    .train-timeline { position: relative; padding-left: 28px; margin-top: 4px; }
-    .train-timeline::before { content: ''; position: absolute; left: 9px; top: 12px; bottom: 12px; width: 3px; background: #e2e8f0; border-radius: 2px; }
-    .train-stop { position: relative; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; color: var(--text-muted); }
-    .train-stop::before { content: ''; position: absolute; left: -24px; top: 16px; width: 11px; height: 11px; border-radius: 50%; background: #94a3b8; border: 2px solid white; z-index: 2; }
-    .train-stop.passed { color: var(--text); }
-    .train-stop.passed::before { background: var(--green); }
-    .train-stop.current { color: var(--primary); font-weight: 700; }
-    .train-stop.current::before { background: var(--primary); box-shadow: 0 0 0 4px #bfdbfe; width: 13px; height: 13px; left: -25px; }
-    .train-bus-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+    /* Simple route information shown below the map */
+    .simple-route-card {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 77px;
+      z-index: 20;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 15px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    .simple-route-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .simple-route-text {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 700;
+      line-height: 1.35;
+    }
 
     /* Bottom Navigation */
     .bottom-nav {
@@ -271,56 +254,30 @@
     </div>
   </div>
 
-  <!-- MAP TRACKING VIEW (FULL GOOGLE MAPS) -->
+  <!-- MAP TRACKING VIEW -->
   <div class="view" id="mapView">
-    <div class="top-bar" style="position: absolute; top: 0; left: 0; right: 0; z-index: 20; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);">
-      <button class="icon-btn" onclick="switchView('homeView', document.querySelectorAll('.nav-tab')[0])"><i class="ph-bold ph-arrow-left"></i></button>
+    <div class="top-bar" style="position: absolute; top: 0; left: 0; right: 0; z-index: 20; background: rgba(255,255,255,0.94); backdrop-filter: blur(8px);">
+      <button class="icon-btn" onclick="switchView('homeView', document.querySelectorAll('.nav-tab')[0])">
+        <i class="ph-bold ph-arrow-left"></i>
+      </button>
+
       <div class="title-group" style="text-align: center;">
         <h3 id="trackBusTitle">BUS 1</h3>
-        <p id="trackCoordName">Real-Time Navigation</p>
+        <p>Live Map</p>
       </div>
-      <button class="icon-btn" onclick="openModal('supportModal')"><i class="ph-bold ph-phone"></i></button>
+
+      <button class="icon-btn" onclick="openModal('supportModal')">
+        <i class="ph-bold ph-phone"></i>
+      </button>
     </div>
 
-    <!-- Clean Bus Bar -->
-    <div class="clean-bus-bar">
-      <div class="clean-bus-title">
-        <i class="ph-bold ph-bus" style="color: var(--primary); font-size: 20px;"></i>
-        <span id="cleanBusId">BUS 1</span>
-        <span class="status-badge status-off" id="cleanStatus">OFFLINE</span>
-      </div>
-      <div class="clean-bus-actions">
-        <button class="icon-map-launch" title="Open Native Maps" onclick="openInNativeMaps()">
-          <i class="ph-bold ph-arrow-square-out"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Official Google Map Container -->
+    <!-- Google Map only: no route line, no stop dots -->
     <div id="trackingMap"></div>
 
-    <!-- Where Is My Train Style Bottom Sheet -->
-    <div class="collapsible-sheet" id="routeSheet">
-      <div class="sheet-handle-bar" onclick="toggleRouteSheet()">
-        <div class="sheet-drag-pill"></div>
-        <div class="sheet-header-summary">
-          <div>
-            <span style="font-size: 11px; color: var(--text-muted);">Current Stop</span>
-            <h4 style="font-size: 14px; color: var(--text);" id="sheetCurrentStop">BARASIROHI</h4>
-          </div>
-          <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
-            <div>
-              <span style="font-size: 11px; color: var(--text-muted);">Scheduled</span>
-              <h4 style="font-size: 14px; color: var(--primary);" id="sheetEta">06:30 AM</h4>
-            </div>
-            <i class="ph-bold ph-caret-up" id="sheetToggleIcon" style="font-size: 18px; color: var(--text-muted); transition: 0.2s;"></i>
-          </div>
-        </div>
-      </div>
-
-      <div class="sheet-body">
-        <div class="train-timeline" id="trainTimelineBox"></div>
-      </div>
+    <!-- Simple route: start to destination only -->
+    <div class="simple-route-card">
+      <div class="simple-route-title" id="simpleRouteBus">BUS 1</div>
+      <div class="simple-route-text" id="simpleRouteText">Loading route...</div>
     </div>
   </div>
 
@@ -390,136 +347,59 @@
   // Google Map Objects
   let gMap = null;
   let gBusMarker = null;
-  let gRoutePath = null;
-  let gStopMarkers = [];
   let activeSelectedBus = assignedBus;
   let activeBusLat = 26.4499;
   let activeBusLng = 80.3319;
-  let currentStopIndex = 0;
-
-  // Toggle Bottom Route Sheet (Where Is My Train)
-  window.toggleRouteSheet = function() {
-    const sheet = document.getElementById("routeSheet");
-    const icon = document.getElementById("sheetToggleIcon");
-    sheet.classList.toggle("collapsed");
-    icon.style.transform = sheet.classList.contains("collapsed") ? "rotate(180deg)" : "rotate(0deg)";
-  };
 
   // Google Map Initialization
   function initGoogleMap() {
     if (gMap) return;
-    
+
     gMap = new google.maps.Map(document.getElementById("trackingMap"), {
-      center: { lat: 26.4499, lng: 80.3319 },
+      center: { lat: activeBusLat, lng: activeBusLng },
       zoom: 13,
       mapTypeId: "roadmap",
       disableDefaultUI: true,
-      zoomControl: true
+      zoomControl: true,
+      fullscreenControl: false,
+      streetViewControl: false,
+      mapTypeControl: false
     });
 
-    renderGoogleRoute(activeSelectedBus);
+    updateSimpleRouteText(activeSelectedBus);
   }
 
-  function renderGoogleRoute(busId) {
+  // Only show the bus route as Start → Destination.
+  // No route polyline and no stop markers are rendered.
+  function updateSimpleRouteText(busId) {
     activeSelectedBus = busId;
+
     const rData = AXIS_BUS_ROUTES[busId];
-    if (!rData || !gMap) return;
 
     document.getElementById("trackBusTitle").innerText = busId;
-    document.getElementById("cleanBusId").innerText = busId;
+    document.getElementById("simpleRouteBus").innerText = busId;
 
-    // Clear previous markers & paths
-    if (gRoutePath) gRoutePath.setMap(null);
-    gStopMarkers.forEach(m => m.setMap(null));
-    gStopMarkers = [];
+    if (!rData) {
+      document.getElementById("simpleRouteText").innerText = "Route information unavailable";
+      return;
+    }
 
-    const pathCoordinates = rData.stops.map(s => ({ lat: s.lat, lng: s.lng }));
+    // Prefer the routeName already defined in bus-routes.js.
+    if (rData.routeName) {
+      document.getElementById("simpleRouteText").innerText = rData.routeName;
+      return;
+    }
 
-    // Real road route polyline
-    gRoutePath = new google.maps.Polyline({
-      path: pathCoordinates,
-      geodesic: true,
-      strokeColor: rData.color || "#2563eb",
-      strokeOpacity: 0.85,
-      strokeWeight: 5,
-      map: gMap
-    });
+    // Fallback: build Start → Destination from the first and last stops.
+    if (Array.isArray(rData.stops) && rData.stops.length >= 2) {
+      const firstStop = rData.stops[0]?.name || "Start";
+      const lastStop = rData.stops[rData.stops.length - 1]?.name || "Destination";
+      document.getElementById("simpleRouteText").innerText =
+        `${firstStop} → ${lastStop}`;
+      return;
+    }
 
-    // Add Stop Dots on Google Map
-    const bounds = new google.maps.LatLngBounds();
-    rData.stops.forEach((stop, idx) => {
-      const pos = { lat: stop.lat, lng: stop.lng };
-      bounds.extend(pos);
-
-      const stopDot = new google.maps.Marker({
-        position: pos,
-        map: gMap,
-        title: stop.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: (idx === 0 || idx === rData.stops.length - 1) ? 6 : 4,
-          fillColor: "#ffffff",
-          fillOpacity: 1,
-          strokeColor: rData.color || "#2563eb",
-          strokeWeight: 2
-        }
-      });
-      gStopMarkers.push(stopDot);
-    });
-
-    gMap.fitBounds(bounds);
-    updateTrainTimeline(0);
-  }
-
-  // Update Where Is My Train Stop Movement
-  function updateTrainTimeline(closestIdx) {
-    currentStopIndex = closestIdx;
-    const rData = AXIS_BUS_ROUTES[activeSelectedBus];
-    if (!rData) return;
-
-    const curStop = rData.stops[closestIdx] || rData.stops[0];
-    document.getElementById("sheetCurrentStop").innerText = curStop.name;
-    document.getElementById("sheetEta").innerText = curStop.time;
-
-    const tBox = document.getElementById("trainTimelineBox");
-    tBox.innerHTML = rData.stops.map((stop, idx) => {
-      let stateClass = "";
-      let busBadge = "";
-
-      if (idx < closestIdx) {
-        stateClass = "passed";
-      } else if (idx === closestIdx) {
-        stateClass = "current";
-        busBadge = `<span class="train-bus-badge"><i class="ph-bold ph-bus"></i> Bus Here</span>`;
-      }
-
-      return `
-        <div class="train-stop ${stateClass}">
-          <div>
-            <span>${stop.name}</span>
-            ${busBadge}
-          </div>
-          <span style="font-size: 11px; color: var(--text-muted);">${stop.time}</span>
-        </div>
-      `;
-    }).join("");
-  }
-
-  // Calculate Nearest Stop for the Bus
-  function calculateNearestStop(busLat, busLng) {
-    const rData = AXIS_BUS_ROUTES[activeSelectedBus];
-    if (!rData) return 0;
-    let minDistance = Infinity;
-    let nearestIdx = 0;
-
-    rData.stops.forEach((s, idx) => {
-      const d = Math.hypot(s.lat - busLat, s.lng - busLng);
-      if (d < minDistance) {
-        minDistance = d;
-        nearestIdx = idx;
-      }
-    });
-    return nearestIdx;
+    document.getElementById("simpleRouteText").innerText = "Route information unavailable";
   }
 
   window.openInNativeMaps = function() {
@@ -541,7 +421,16 @@
     if (viewId === "mapView") {
       setTimeout(() => {
         initGoogleMap();
-        renderGoogleRoute(activeSelectedBus);
+        updateSimpleRouteText(activeSelectedBus);
+
+        // Recalculate map dimensions after the hidden view becomes visible.
+        if (gMap) {
+          google.maps.event.trigger(gMap, "resize");
+
+          if (activeBusLat && activeBusLng) {
+            gMap.panTo({ lat: activeBusLat, lng: activeBusLng });
+          }
+        }
       }, 150);
     }
   };
@@ -577,6 +466,7 @@
 
   window.selectAndTrackBus = function(bId) {
     activeSelectedBus = bId;
+    updateSimpleRouteText(bId);
     switchView("mapView", document.querySelectorAll(".nav-tab")[1]);
   };
 
@@ -615,11 +505,8 @@
                 }
               });
             }
+            // Keep the map centered on the live bus.
             gMap.panTo(pos);
-
-            // Update Nearest Stop Timeline
-            const nearest = calculateNearestStop(activeBusLat, activeBusLng);
-            updateTrainTimeline(nearest);
           }
         }
       } else {
