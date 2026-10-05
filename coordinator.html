@@ -3,74 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#2563eb">
   <title>CampusRide - Coordinator Dashboard</title>
-
-  <!-- PUT YOUR ACTIVE GOOGLE MAPS JAVASCRIPT API KEY HERE -->
-  <script>
-    window.CAMPUSRIDE_GOOGLE_MAPS_KEY = AIzaSyBle2g5HxjN-VnW3tGX_oce7vBQG8ygscM;
-  </script>
+  
+  <!-- Official Google Maps SDK -->
+<!-- Official Google Maps SDK -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuzSJx40q1GzH2RZ-EZCE9iRzl-xkaQho&libraries=geometry"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
     :root {
-      --primary:#2563eb; --primary-light:#eff6ff; --bg:#f8fafc; --surface:#fff;
-      --text:#0f172a; --text-muted:#64748b; --border:#e2e8f0;
-      --green:#16a34a; --green-bg:#dcfce7; --red:#dc2626; --red-bg:#fee2e2;
-      --amber:#d97706; --amber-bg:#fef3c7;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --green: #16a34a;
+      --green-bg: #dcfce7;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
     }
-    *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-    body{background:#0b1329;display:flex;justify-content:center;min-height:100vh}
-    button{font:inherit}
-    .app-container{width:100%;max-width:430px;height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.5)}
-    .top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex:0 0 auto}
-    .title-group h3{font-size:16px;font-weight:700;color:var(--text)}
-    .title-group p{font-size:11px;color:var(--text-muted)}
-    .top-actions{display:flex;gap:8px}.icon-btn{background:none;border:none;font-size:22px;color:var(--text);cursor:pointer;display:flex;align-items:center;padding:4px}
-    .view{display:none;flex:1;flex-direction:column;min-height:0;width:100%;overflow-y:auto;padding-bottom:75px}
-    .view.active{display:flex}.content-body{padding:16px 20px 24px;display:flex;flex-direction:column;gap:16px}
-    .hero-banner{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:16px;padding:18px 20px;color:#fff}.hero-banner h2{font-size:18px;margin-bottom:2px}.hero-banner p{font-size:12px;opacity:.9}
-    .section-head{display:flex;justify-content:space-between;align-items:center}.section-head h4{font-size:14px;font-weight:700;color:var(--text)}
-    .badge-tag{font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:4px 8px;border-radius:6px}
-    .bus-list{display:flex;flex-direction:column;gap:10px}.bus-card{background:var(--surface);border-radius:14px;padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:10px}.bus-card.assigned{border:2px solid var(--primary);background:#f0f7ff}
-    .bus-top-row{display:flex;align-items:center;justify-content:space-between}.bus-meta-group{display:flex;align-items:center;gap:12px;min-width:0}.bus-icon-wrap{width:42px;height:42px;flex:0 0 42px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px}.bus-id{font-size:14px;font-weight:700;color:var(--text)}.bus-route{font-size:12px;color:var(--text-muted);white-space:normal}
-    .status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap}.status-live{background:var(--green-bg);color:var(--green)}.status-off{background:var(--red-bg);color:var(--red)}.status-starting{background:var(--amber-bg);color:var(--amber)}
-    .bus-control-row{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:10px}.btn-broadcast{flex:1;padding:11px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px}.btn-broadcast:active{transform:scale(.99)}.btn-broadcast:disabled{opacity:.7;cursor:wait}.btn-start-gps{background:var(--green);color:#fff}.btn-stop-gps{background:var(--red);color:#fff;display:none}
-    .home-map-box{display:none;margin-top:0;border-radius:14px;overflow:hidden;border:1px solid var(--border);height:230px;position:relative;background:#e5e7eb}.home-map-box.visible{display:block}.map-status{position:absolute;left:10px;top:10px;z-index:10;background:rgba(255,255,255,.95);padding:7px 10px;border-radius:8px;font-size:10px;font-weight:700;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.12)}#homeMiniMap{width:100%;height:100%}
-    #routesView{position:relative;padding-bottom:0;overflow:hidden}#fullRouteMap{width:100%;height:100%;min-height:100%}.map-error{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:30px;text-align:center;color:var(--text-muted);background:#f1f5f9;font-size:13px;z-index:2}
-    .bottom-nav{position:absolute;bottom:0;left:0;width:100%;height:65px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:1000}.nav-tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text-muted);font-size:10px;cursor:pointer;border:none;background:none;flex:1;height:100%;justify-content:center}.nav-tab i{font-size:20px}.nav-tab.active{color:var(--primary);font-weight:600}
-    .toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%) translateY(20px);width:min(390px,calc(100% - 32px));background:#0f172a;color:#fff;padding:11px 14px;border-radius:10px;font-size:12px;line-height:1.4;opacity:0;pointer-events:none;transition:.2s;z-index:3000;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.error{background:#991b1b}
-    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}.modal-card{background:#fff;width:100%;max-width:380px;border-radius:18px;padding:22px}.modal-card h3{font-size:16px}.modal-card p{font-size:11px;color:var(--text-muted);margin-top:4px}.modal-card textarea{width:100%;height:90px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;outline:none;margin:12px 0;resize:none}.modal-actions{display:flex;gap:8px}.btn-modal{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #0b1329; display: flex; justify-content: center; min-height: 100vh; }
+    
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top-bar .title-group h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .top-bar .title-group p { font-size: 11px; color: var(--text-muted); }
+    .icon-btn { background: none; border: none; font-size: 22px; color: var(--text); cursor: pointer; display: flex; align-items: center; }
+
+    .view { display: none; flex-direction: column; height: 100%; width: 100%; overflow-y: auto; padding-bottom: 75px; }
+    .view.active { display: flex; }
+    .content-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    .hero-banner {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      border-radius: 16px;
+      padding: 18px 20px;
+      color: white;
+    }
+    .hero-banner h2 { font-size: 18px; margin-bottom: 2px; }
+    .hero-banner p { font-size: 12px; opacity: 0.9; }
+
+    .section-head { display: flex; justify-content: space-between; align-items: center; }
+    .section-head h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+    .badge-tag { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 4px 8px; border-radius: 6px; }
+
+    .bus-list { display: flex; flex-direction: column; gap: 10px; }
+    .bus-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bus-card.assigned { border: 2px solid var(--primary); background: #f0f7ff; }
+    .bus-top-row { display: flex; align-items: center; justify-content: space-between; }
+    .bus-meta-group { display: flex; align-items: center; gap: 12px; }
+    .bus-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .bus-id { font-size: 14px; font-weight: 700; color: var(--text); }
+    .bus-route { font-size: 12px; color: var(--text-muted); }
+    .status-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .status-live { background: var(--green-bg); color: var(--green); }
+    .status-off { background: var(--red-bg); color: var(--red); }
+
+    .bus-control-row { display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 10px; }
+    .btn-broadcast { flex: 1; padding: 11px; border-radius: 9px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-start-gps { background: var(--green); color: #fff; }
+    .btn-stop-gps { background: var(--red); color: #fff; display: none; }
+
+    .home-map-box { display: none; margin-top: 4px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); height: 230px; position: relative; }
+    #homeMiniMap { width: 100%; height: 100%; }
+
+    #routesView { position: relative; padding-bottom: 0; }
+    #fullRouteMap { width: 100%; height: 100%; }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 65px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+    }
+    .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; cursor: pointer; border: none; background: none; flex: 1; }
+    .nav-tab i { font-size: 20px; }
+    .nav-tab.active { color: var(--primary); font-weight: 600; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-card { background: #fff; width: 100%; max-width: 380px; border-radius: 18px; padding: 22px; }
+    .modal-card textarea { width: 100%; height: 90px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; margin: 12px 0; resize: none; }
+    .modal-actions { display: flex; gap: 8px; }
+    .btn-modal { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
-<div class="app-container">
-  <div class="top-bar">
-    <div class="title-group"><h3>CampusRide</h3><p>Coordinator Broadcast Portal</p></div>
-    <div class="top-actions"><button class="icon-btn" onclick="openAnnounceModal()" title="Broadcast Delay"><i class="ph-bold ph-megaphone"></i></button><button class="icon-btn" onclick="logout()" title="Logout"><i class="ph-bold ph-sign-out"></i></button></div>
-  </div>
 
-  <div class="view active" id="homeView">
-    <div class="content-body">
-      <div class="hero-banner"><h2 id="coordHeroName">Welcome, Coordinator 👋</h2><p id="coordHeroBus">Assigned Bus: BUS 1</p></div>
-      <div class="section-head"><h4>Fleet Control</h4><span class="badge-tag" id="myBusBadge">MY BUS: BUS 1</span></div>
-      <div class="bus-list" id="coordBusList"></div>
-      <div class="home-map-box" id="homeMapBox"><div class="map-status" id="homeMapStatus">Waiting for GPS…</div><div id="homeMiniMap"></div></div>
+<div class="app-container">
+  
+  <div class="top-bar">
+    <div class="title-group">
+      <h3>CampusRide</h3>
+      <p>Coordinator Broadcast Portal</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="icon-btn" onclick="openAnnounceModal()" title="Broadcast Delay"><i class="ph-bold ph-megaphone"></i></button>
+      <button class="icon-btn" onclick="logout()" title="Logout"><i class="ph-bold ph-sign-out"></i></button>
     </div>
   </div>
 
-  <div class="view" id="routesView"><div id="fullRouteMap"></div></div>
+  <!-- HOME VIEW -->
+  <div class="view active" id="homeView">
+    <div class="content-body">
+      <div class="hero-banner">
+        <h2 id="coordHeroName">Welcome, Coordinator 👋</h2>
+        <p id="coordHeroBus">Assigned Bus: BUS 1</p>
+      </div>
 
+      <div class="section-head">
+        <h4>Fleet Control</h4>
+        <span class="badge-tag" id="myBusBadge">MY BUS: BUS 1</span>
+      </div>
+
+      <div class="bus-list" id="coordBusList"></div>
+
+      <!-- Mini Live Broadcast Google Map -->
+      <div class="home-map-box" id="homeMapBox">
+        <div id="homeMiniMap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL MAP VIEW -->
+  <div class="view" id="routesView">
+    <div id="fullRouteMap"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-tab active" onclick="switchTab('homeView',this)"><i class="ph-bold ph-house"></i><span>Home</span></button>
-    <button class="nav-tab" onclick="switchTab('routesView',this)"><i class="ph-bold ph-navigation-arrow"></i><span>Route Map</span></button>
+    <button class="nav-tab active" onclick="switchTab('homeView', this)"><i class="ph-bold ph-house"></i><span>Home</span></button>
+    <button class="nav-tab" onclick="switchTab('routesView', this)"><i class="ph-bold ph-navigation-arrow"></i><span>Route Map</span></button>
   </nav>
+
 </div>
 
+<!-- Delay Modal -->
 <div class="modal-overlay" id="announceModal">
-  <div class="modal-card"><h3>Broadcast Delay Alert</h3><p>Target: Assigned bus passengers</p><textarea id="modalInput" placeholder="e.g. Delayed by 10 mins near Kakadev..."></textarea><div class="modal-actions"><button class="btn-modal" style="background:#f1f5f9" onclick="closeAnnounceModal()">Cancel</button><button class="btn-modal" style="background:var(--primary);color:#fff" onclick="submitAnnouncement()">Broadcast</button></div></div>
+  <div class="modal-card">
+    <h3 style="font-size: 16px;">Broadcast Delay Alert</h3>
+    <p style="font-size: 11px; color: var(--text-muted);">Target: Assigned bus passengers</p>
+    <textarea id="modalInput" placeholder="e.g. Delayed by 10 mins near Kakadev..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-modal" style="background: #f1f5f9;" onclick="closeAnnounceModal()">Cancel</button>
+      <button class="btn-modal" style="background: var(--primary); color: white;" onclick="submitAnnouncement()">Broadcast</button>
+    </div>
+  </div>
 </div>
-<div class="toast" id="toast"></div>
 
 <script type="module">
   import { db, ref, set, update, onValue } from "./firebase-config.js";
@@ -79,257 +206,210 @@
   const session = JSON.parse(localStorage.getItem("campusride_user") || "null");
   if (!session || session.role !== "coordinator") {
     window.location.href = "login.html";
-    throw new Error("Coordinator session required");
   }
 
-  const assignedBus = session.busId || "BUS 1";
-  const coordBusList = document.getElementById("coordBusList");
-  const busKeys = Object.keys(AXIS_BUS_ROUTES);
+  window.logout = function() {
+    localStorage.removeItem("campusride_user");
+    window.location.href = "login.html";
+  };
 
+  const assignedBus = session.busId || "BUS 1";
   document.getElementById("coordHeroName").innerText = `Welcome, ${session.name || "Coordinator"} 👋`;
   document.getElementById("coordHeroBus").innerText = `Assigned Bus: ${assignedBus}`;
   document.getElementById("myBusBadge").innerText = `MY BUS: ${assignedBus}`;
 
+  // Google Maps Instance
   let fullGoogleMap = null;
   let miniGoogleMap = null;
   let fullBusMarker = null;
   let miniBusMarker = null;
-  let gpsWatchId = null;
-  let activeBroadcastBus = null;
-  let googleMapsLoaded = false;
-  let googleMapsLoadingPromise = null;
 
-  const defaultCenter = { lat: 26.4499, lng: 80.3319 };
+  function initGoogleCoordinatorMaps() {
+    const defaultCenter = { lat: 26.4499, lng: 80.3319 };
 
-  function toast(message, isError = false) {
-    const el = document.getElementById("toast");
-    el.textContent = message;
-    el.className = `toast show${isError ? " error" : ""}`;
-    clearTimeout(window.__toastTimer);
-    window.__toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
+    if (!fullGoogleMap && document.getElementById("fullRouteMap")) {
+      fullGoogleMap = new google.maps.Map(document.getElementById("fullRouteMap"), {
+        center: defaultCenter,
+        zoom: 13,
+        disableDefaultUI: true,
+        zoomControl: true
+      });
+      drawCoordinatorRoute(fullGoogleMap);
+    }
+
+    if (!miniGoogleMap && document.getElementById("homeMiniMap")) {
+      miniGoogleMap = new google.maps.Map(document.getElementById("homeMiniMap"), {
+        center: defaultCenter,
+        zoom: 13,
+        disableDefaultUI: true
+      });
+      drawCoordinatorRoute(miniGoogleMap);
+    }
   }
 
-  function safeBusId(id) { return String(id).replace(/\s+/g, "_"); }
+  function drawCoordinatorRoute(mapInstance) {
+    const myRoute = AXIS_BUS_ROUTES[assignedBus];
+    if (!myRoute) return;
+
+    const path = myRoute.stops.map(s => ({ lat: s.lat, lng: s.lng }));
+    new google.maps.Polyline({
+      path: path,
+      geodesic: true,
+      strokeColor: myRoute.color || "#2563eb",
+      strokeOpacity: 0.85,
+      strokeWeight: 5,
+      map: mapInstance
+    });
+
+    const bounds = new google.maps.LatLngBounds();
+    path.forEach(pos => bounds.extend(pos));
+    mapInstance.fitBounds(bounds);
+  }
+
+  window.switchTab = function(viewId, tabEl) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.getElementById(viewId).classList.add("active");
+    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+    tabEl.classList.add("active");
+
+    if (viewId === "routesView") {
+      setTimeout(initGoogleCoordinatorMaps, 100);
+    }
+  };
+
+  const coordBusList = document.getElementById("coordBusList");
+  const busKeys = Object.keys(AXIS_BUS_ROUTES);
 
   function renderCards() {
     coordBusList.innerHTML = busKeys.map(bId => {
-      const isMine = bId === assignedBus;
-      const safeId = safeBusId(bId);
-      const route = AXIS_BUS_ROUTES[bId];
+      const isMine = (bId === assignedBus);
+      const safeId = bId.replace(/\s+/g, '_');
+      const r = AXIS_BUS_ROUTES[bId];
       return `
-        <div class="bus-card ${isMine ? "assigned" : ""}">
+        <div class="bus-card ${isMine ? 'assigned' : ''}">
           <div class="bus-top-row">
             <div class="bus-meta-group">
-              <div class="bus-icon-wrap"><i class="ph-bold ph-bus"></i></div>
-              <div><div class="bus-id">${bId} ${isMine ? '<span style="font-size:10px;color:#2563eb">(MY BUS)</span>' : ""}</div><div class="bus-route">${route?.routeName || "Route"}</div></div>
+              <div class="bus-icon-wrap" id="icon_${safeId}"><i class="ph-bold ph-bus"></i></div>
+              <div>
+                <div class="bus-id">${bId} ${isMine ? '<span style="font-size:10px; color:#2563eb;">(MY BUS)</span>' : ''}</div>
+                <div class="bus-route">${r ? r.routeName : 'Route'}</div>
+              </div>
             </div>
             <span class="status-badge status-off" id="pill_${safeId}">OFFLINE</span>
           </div>
           ${isMine ? `
             <div class="bus-control-row">
-              <button class="btn-broadcast btn-start-gps" id="btnStart_${safeId}" onclick="startBroadcast('${bId}')"><i class="ph-bold ph-broadcast"></i> Make Bus Live (GPS)</button>
-              <button class="btn-broadcast btn-stop-gps" id="btnStop_${safeId}" onclick="stopBroadcast('${bId}')"><i class="ph-bold ph-stop-circle"></i> Stop Broadcast</button>
-            </div>` : ""}
-        </div>`;
+              <button class="btn-broadcast btn-start-gps" id="btnStart_${safeId}" onclick="startBroadcast('${bId}')">
+                <i class="ph-bold ph-broadcast"></i> Make Bus Live (GPS)
+              </button>
+              <button class="btn-broadcast btn-stop-gps" id="btnStop_${safeId}" onclick="stopBroadcast('${bId}')">
+                <i class="ph-bold ph-stop-circle"></i> Stop Broadcast
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
     }).join("");
   }
   renderCards();
 
-  function setStatus(bId, state) {
-    const pill = document.getElementById(`pill_${safeBusId(bId)}`);
-    if (!pill) return;
-    if (state === "live") { pill.className = "status-badge status-live"; pill.textContent = "LIVE"; }
-    else if (state === "starting") { pill.className = "status-badge status-starting"; pill.textContent = "STARTING…"; }
-    else { pill.className = "status-badge status-off"; pill.textContent = "OFFLINE"; }
-  }
-
-  function setButtonState(bId, live, starting = false) {
-    const id = safeBusId(bId);
-    const start = document.getElementById(`btnStart_${id}`);
-    const stop = document.getElementById(`btnStop_${id}`);
-    if (!start || !stop) return;
-    if (starting) { start.style.display = "flex"; stop.style.display = "none"; start.disabled = true; start.innerHTML = '<i class="ph-bold ph-circle-notch"></i> Starting GPS…'; }
-    else if (live) { start.style.display = "none"; stop.style.display = "flex"; start.disabled = false; start.innerHTML = '<i class="ph-bold ph-broadcast"></i> Make Bus Live (GPS)'; }
-    else { start.style.display = "flex"; stop.style.display = "none"; start.disabled = false; start.innerHTML = '<i class="ph-bold ph-broadcast"></i> Make Bus Live (GPS)'; }
-  }
-
-  function loadGoogleMaps() {
-    if (googleMapsLoaded && window.google?.maps) return Promise.resolve(true);
-    if (googleMapsLoadingPromise) return googleMapsLoadingPromise;
-
-    const key = window.CAMPUSRIDE_GOOGLE_MAPS_KEY;
-    if (!key || key === "YOUR_GOOGLE_MAPS_API_KEY") {
-      return Promise.reject(new Error("Google Maps API key is not configured."));
-    }
-
-    googleMapsLoadingPromise = new Promise((resolve, reject) => {
-      const callbackName = "__campusRideGoogleMapsReady";
-      window[callbackName] = () => { googleMapsLoaded = true; resolve(true); };
-      const script = document.createElement("script");
-      script.async = true;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&loading=async&callback=${callbackName}`;
-      script.onerror = () => reject(new Error("Google Maps JavaScript API could not load."));
-      document.head.appendChild(script);
-    }).catch(err => { googleMapsLoadingPromise = null; throw err; });
-
-    return googleMapsLoadingPromise;
-  }
-
-  function routePath() {
-    const route = AXIS_BUS_ROUTES[assignedBus];
-    return route?.stops?.map(s => ({ lat: Number(s.lat), lng: Number(s.lng) })) || [];
-  }
-
-  function drawRoute(map) {
-    const route = AXIS_BUS_ROUTES[assignedBus];
-    const path = routePath();
-    if (!route || !path.length || !window.google?.maps) return;
-    new google.maps.Polyline({ path, geodesic:true, strokeColor:route.color || "#2563eb", strokeOpacity:.85, strokeWeight:5, map });
-    const bounds = new google.maps.LatLngBounds();
-    path.forEach(p => bounds.extend(p));
-    map.fitBounds(bounds);
-  }
-
-  function createOrMoveMarker(lat, lng) {
-    if (!window.google?.maps) return;
-    const position = { lat:Number(lat), lng:Number(lng) };
-    const icon = { url:"https://maps.google.com/mapfiles/kml/shapes/bus.png", scaledSize:new google.maps.Size(38,38), anchor:new google.maps.Point(19,19) };
-    if (!miniBusMarker && miniGoogleMap) miniBusMarker = new google.maps.Marker({ position, map:miniGoogleMap, icon, title:assignedBus });
-    else if (miniBusMarker) miniBusMarker.setPosition(position);
-    if (!fullBusMarker && fullGoogleMap) fullBusMarker = new google.maps.Marker({ position, map:fullGoogleMap, icon, title:assignedBus });
-    else if (fullBusMarker) fullBusMarker.setPosition(position);
-    if (miniGoogleMap) miniGoogleMap.panTo(position);
-  }
-
-  async function initGoogleCoordinatorMaps() {
-    try {
-      await loadGoogleMaps();
-      if (!miniGoogleMap) {
-        miniGoogleMap = new google.maps.Map(document.getElementById("homeMiniMap"), { center:defaultCenter, zoom:13, mapTypeControl:false, streetViewControl:false, fullscreenControl:false, zoomControl:true });
-        drawRoute(miniGoogleMap);
-      }
-      if (!fullGoogleMap) {
-        fullGoogleMap = new google.maps.Map(document.getElementById("fullRouteMap"), { center:defaultCenter, zoom:13, mapTypeControl:false, streetViewControl:false, fullscreenControl:false, zoomControl:true });
-        drawRoute(fullGoogleMap);
-      }
-      return true;
-    } catch (err) {
-      console.error(err);
-      document.getElementById("homeMapStatus").textContent = "Google Maps unavailable — check API key/billing";
-      return false;
-    }
-  }
-
-  window.switchTab = async function(viewId, tabEl) {
-    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-    document.getElementById(viewId).classList.add("active");
-    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
-    tabEl.classList.add("active");
-    if (viewId === "routesView") {
-      await initGoogleCoordinatorMaps();
-      if (fullGoogleMap) google.maps.event.trigger(fullGoogleMap, "resize");
-    }
-  };
-
-  async function publishPosition(bId, position) {
-    const coords = position.coords;
-    const lat = Number(coords.latitude);
-    const lng = Number(coords.longitude);
-    const speed = coords.speed == null || !Number.isFinite(coords.speed) ? 0 : Math.max(0, Number(coords.speed) * 3.6);
-    const accuracy = Number.isFinite(coords.accuracy) ? Number(coords.accuracy) : null;
-    const now = new Date();
-
-    const data = { latitude:lat, longitude:lng, speed:Number(speed.toFixed(1)), isActive:true, coordinatorName:session.name || "Coordinator", lastUpdated:now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}), timestamp:now.toISOString() };
-    if (accuracy != null) data.accuracy = Number(accuracy.toFixed(1));
-
-    try {
-      await update(ref(db, `buses/${bId}`), data);
-      document.getElementById("homeMapStatus").textContent = `LIVE • GPS ±${Math.round(accuracy || 0)}m`;
-      if (googleMapsLoaded) createOrMoveMarker(lat, lng);
-    } catch (err) {
-      console.error(err);
-      toast("GPS received, but Firebase update failed. Check Firebase rules/network.", true);
-    }
-  }
-
-  window.startBroadcast = async function(bId) {
-    if (bId !== assignedBus) return;
-    if (gpsWatchId !== null) return;
-    if (!navigator.geolocation) { toast("This device/browser does not support GPS.", true); return; }
-
-    setButtonState(bId, false, true); setStatus(bId, "starting");
-    document.getElementById("homeMapBox").classList.add("visible");
-    document.getElementById("homeMapStatus").textContent = "Requesting GPS permission…";
-
-    // Map failure must NOT prevent GPS broadcasting to Firebase.
-    initGoogleCoordinatorMaps();
-
-    const options = { enableHighAccuracy:true, maximumAge:5000, timeout:15000 };
-    gpsWatchId = navigator.geolocation.watchPosition(
-      async position => {
-        activeBroadcastBus = bId;
-        setStatus(bId, "live"); setButtonState(bId, true);
-        await publishPosition(bId, position);
-      },
-      async error => {
-        console.error("Geolocation error", error);
-        if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
-        gpsWatchId = null; activeBroadcastBus = null;
-        setStatus(bId, "off"); setButtonState(bId, false);
-        document.getElementById("homeMapStatus").textContent = "GPS unavailable";
-        const msg = error.code === 1 ? "Location permission was denied. Allow Location for this site and try again." : error.code === 2 ? "Your device could not determine its location." : "GPS timed out. Move outdoors/near a window and try again.";
-        toast(msg, true);
-        try { await update(ref(db, `buses/${bId}`), { isActive:false }); } catch (_) {}
-      }, options
-    );
-  };
-
-  window.stopBroadcast = async function(bId) {
-    if (bId !== assignedBus) return;
-    if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
-    activeBroadcastBus = null;
-    setStatus(bId, "off"); setButtonState(bId, false);
-    document.getElementById("homeMapStatus").textContent = "Broadcast stopped";
-    try {
-      await update(ref(db, `buses/${bId}`), { isActive:false, lastUpdated:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) });
-      toast(`${bId} broadcast stopped.`);
-    } catch (err) { console.error(err); toast("Could not update Firebase. Check network/rules.", true); }
-  };
-
-  onValue(ref(db, "buses"), snapshot => {
+  onValue(ref(db, "buses"), (snapshot) => {
     const data = snapshot.val() || {};
     busKeys.forEach(bId => {
       const b = data[bId];
-      if (b?.isActive) setStatus(bId, "live"); else setStatus(bId, "off");
-      if (bId === assignedBus && b?.isActive && Number.isFinite(Number(b.latitude)) && Number.isFinite(Number(b.longitude))) {
-        document.getElementById("homeMapBox").classList.add("visible");
-        document.getElementById("homeMapStatus").textContent = "LIVE • Firebase location";
-        if (googleMapsLoaded) createOrMoveMarker(Number(b.latitude), Number(b.longitude));
+      const safeId = bId.replace(/\s+/g, '_');
+      const pill = document.getElementById(`pill_${safeId}`);
+      if (pill) {
+        pill.className = (b && b.isActive) ? "status-badge status-live" : "status-badge status-off";
+        pill.innerText = (b && b.isActive) ? "LIVE" : "OFFLINE";
       }
     });
   });
 
-  window.logout = function() {
-    if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
-    gpsWatchId = null;
-    localStorage.removeItem("campusride_user");
-    window.location.href = "login.html";
+  let watchId = null;
+  let simInterval = null;
+
+  window.startBroadcast = function(bId) {
+    const safeId = bId.replace(/\s+/g, '_');
+    document.getElementById(`btnStart_${safeId}`).style.display = "none";
+    document.getElementById(`btnStop_${safeId}`).style.display = "flex";
+    document.getElementById("homeMapBox").style.display = "block";
+    
+    initGoogleCoordinatorMaps();
+
+    const pushGPS = (lat, lng, spd = 30) => {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      update(ref(db, `buses/${bId}`), {
+        latitude: lat,
+        longitude: lng,
+        speed: spd,
+        isActive: true,
+        coordinatorName: session.name || "Faculty",
+        lastUpdated: time
+      });
+
+      const pos = new google.maps.LatLng(lat, lng);
+      const iconConfig = {
+        url: "https://maps.google.com/mapfiles/kml/shapes/bus.png",
+        scaledSize: new google.maps.Size(36, 36),
+        anchor: new google.maps.Point(18, 18)
+      };
+
+      if (!miniBusMarker && miniGoogleMap) {
+        miniBusMarker = new google.maps.Marker({ position: pos, map: miniGoogleMap, icon: iconConfig });
+      } else if (miniBusMarker) {
+        miniBusMarker.setPosition(pos);
+      }
+
+      if (miniGoogleMap) miniGoogleMap.panTo(pos);
+    };
+
+    // Simulated Driving through Route Waypoints
+    const r = AXIS_BUS_ROUTES[bId];
+    if (!r || !r.stops.length) return;
+    let idx = 0;
+    pushGPS(r.stops[0].lat, r.stops[0].lng, 32);
+
+    simInterval = setInterval(() => {
+      idx = (idx + 1) % r.stops.length;
+      const s = r.stops[idx];
+      pushGPS(s.lat, s.lng, Math.floor(Math.random() * 12) + 24);
+    }, 3500);
+  };
+
+  window.stopBroadcast = function(bId) {
+    const safeId = bId.replace(/\s+/g, '_');
+    if (simInterval) clearInterval(simInterval);
+    
+    update(ref(db, `buses/${bId}`), { 
+      isActive: false, 
+      lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    
+    document.getElementById(`btnStart_${safeId}`).style.display = "flex";
+    document.getElementById(`btnStop_${safeId}`).style.display = "none";
+    document.getElementById("homeMapBox").style.display = "none";
   };
 
   window.openAnnounceModal = () => document.getElementById("announceModal").style.display = "flex";
   window.closeAnnounceModal = () => document.getElementById("announceModal").style.display = "none";
-  window.submitAnnouncement = async function() {
+
+  window.submitAnnouncement = function() {
     const text = document.getElementById("modalInput").value.trim();
     if (!text) return;
-    try {
-      const now = new Date();
-      await set(ref(db, `announcements/${assignedBus}/latest`), { text, author:session.name || "Coordinator", busId:assignedBus, time:now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}), timestamp:now.toISOString() });
-      closeAnnounceModal(); document.getElementById("modalInput").value = ""; toast("Delay announcement sent.");
-    } catch (err) { console.error(err); toast("Announcement failed. Check Firebase connection.", true); }
-  };
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // Try to prepare Google Maps after the page is ready, but never block the GPS button.
-  initGoogleCoordinatorMaps();
+    set(ref(db, `announcements/${assignedBus}/latest`), {
+      text: text,
+      author: session.name || "Coordinator",
+      busId: assignedBus,
+      time: timeStr
+    }).then(() => {
+      closeAnnounceModal();
+      document.getElementById("modalInput").value = "";
+    });
+  };
 </script>
+
 </body>
 </html>
