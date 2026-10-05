@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CampusRide - College Bus Tracker</title>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Google Maps JavaScript API with your key -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB26o6m8z4CfPUZ_nSmV8viJnkY9Eu6hMk&libraries=geometry&callback=initGoogleMap"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --green: #16a34a;
+      --green-bg: #dcfce7;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #0b1329; display: flex; justify-content: center; min-height: 100vh; }
+    
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+
+    .view { display: none; flex-direction: column; height: 100%; width: 100%; overflow-y: auto; padding-bottom: 75px; }
+    .view.active { display: flex; }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top-bar .title-group h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .top-bar .title-group p { font-size: 11px; color: var(--text-muted); }
+    .icon-btn { background: none; border: none; font-size: 22px; color: var(--text); cursor: pointer; display: flex; align-items: center; position: relative; }
+    .notif-badge { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; display: none; }
+
+    .content-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+    
+    .hero-banner {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      border-radius: 16px;
+      padding: 18px 20px;
+      color: white;
+    }
+    .hero-banner h2 { font-size: 18px; margin-bottom: 2px; }
+    .hero-banner p { font-size: 12px; opacity: 0.9; }
+
+    .section-head { display: flex; justify-content: space-between; align-items: center; }
+    .section-head h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    .bus-list { display: flex; flex-direction: column; gap: 10px; }
+    .bus-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .bus-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .bus-icon-wrap.off { background: var(--red-bg); color: var(--red); }
+    .bus-info { flex: 1; }
+    .bus-info-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .bus-id { font-size: 14px; font-weight: 700; color: var(--text); }
+    .status-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .status-live { background: var(--green-bg); color: var(--green); }
+    .status-off { background: var(--red-bg); color: var(--red); }
+    .bus-route { font-size: 12px; color: var(--text-muted); }
+
+    .announce-card {
+      background: var(--primary-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .announce-card h5 { font-size: 13px; color: var(--primary); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .announce-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+    #mapView { position: relative; padding-bottom: 0; height: 100vh; overflow: hidden; background: #e5e7eb; }
+    #trackingMap { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+
+    .simple-route-card {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 77px;
+      z-index: 20;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 15px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+    .simple-route-title { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 3px; text-transform: uppercase; }
+    .simple-route-text { font-size: 13px; color: var(--text); font-weight: 700; line-height: 1.35; }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 65px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+    .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; cursor: pointer; border: none; background: none; flex: 1; }
+    .nav-tab i { font-size: 20px; }
+    .nav-tab.active { color: var(--primary); font-weight: 600; }
+
+    .drawer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .drawer { width: 78%; height: 100%; background: #0b1329; color: white; padding: 24px 20px; display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .drawer-overlay.open .drawer { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .drawer-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; color: #cbd5e1; font-size: 14px; cursor: pointer; text-decoration: none; }
+    .drawer-item.active { background: var(--primary); color: white; }
+
+    .app-modal { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 2500; display: none; align-items: flex-end; justify-content: center; }
+    .app-modal.active { display: flex; }
+    .app-modal-card { background: var(--surface); width: 100%; max-width: 430px; border-radius: 20px 20px 0 0; padding: 22px 20px 30px; max-height: 80vh; overflow-y: auto; }
+    .contact-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+    .btn-action-call { padding: 6px 12px; border-radius: 8px; background: var(--primary); color: white; text-decoration: none; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)">
+    <div class="drawer" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <div style="display: flex; align-items: center; gap: 10px; font-weight: 700;">
+          <i class="ph-bold ph-bus" style="font-size: 22px; color: #38bdf8;"></i> CampusRide
+        </div>
+        <button class="icon-btn" style="color: white;" onclick="toggleDrawer(false)"><i class="ph ph-x"></i></button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <a class="drawer-item active" onclick="switchView('homeView'); toggleDrawer(false)"><i class="ph ph-house"></i> Home</a>
+        <a class="drawer-item" onclick="switchView('mapView'); toggleDrawer(false)"><i class="ph ph-navigation-arrow"></i> Live Map</a>
+        <a class="drawer-item" onclick="switchView('notifView'); toggleDrawer(false)"><i class="ph ph-bell"></i> Alerts</a>
+        <a class="drawer-item" onclick="openModal('supportModal'); toggleDrawer(false)"><i class="ph ph-headset"></i> Support</a>
+        <a class="drawer-item" onclick="logout()"><i class="ph ph-sign-out"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME VIEW -->
+  <div class="view active" id="homeView">
+    <div class="top-bar">
+      <button class="icon-btn" onclick="toggleDrawer(true)"><i class="ph-bold ph-list"></i></button>
+      <div class="title-group" style="text-align: center;">
+        <h3>CampusRide</h3>
+        <p>Axis Colleges Transit</p>
+      </div>
+      <button class="icon-btn" onclick="switchView('notifView', document.querySelectorAll('.nav-tab')[2])">
+        <i class="ph-bold ph-bell"></i>
+        <div class="notif-badge" id="topNotifBadge"></div>
+      </button>
+    </div>
+
+    <div class="content-body">
+      <div class="hero-banner">
+        <h2 id="heroName">Welcome 🚍</h2>
+        <p id="heroRoute">Assigned Bus: BUS 1</p>
+      </div>
+
+      <div class="section-head">
+        <h4>My Bus Delay Updates</h4>
+      </div>
+      <div class="announce-card" id="studentAnnounceBox">
+        <h5 id="announceTitle">Regular Schedule <span style="font-size: 10px; color: var(--text-muted);">Normal</span></h5>
+        <p id="announceMsg">No active delays reported for your bus route.</p>
+      </div>
+
+      <div class="section-head">
+        <h4>Campus Fleet</h4>
+        <span style="font-size: 12px; color: var(--primary); font-weight: 600;">ALL BUSES</span>
+      </div>
+
+      <div class="bus-list" id="busCardsList"></div>
+    </div>
+  </div>
+
+  <!-- GOOGLE MAP VIEW -->
+  <div class="view" id="mapView">
+    <div class="top-bar" style="position: absolute; top: 0; left: 0; right: 0; z-index: 20; background: rgba(255,255,255,0.94); backdrop-filter: blur(8px);">
+      <button class="icon-btn" onclick="switchView('homeView', document.querySelectorAll('.nav-tab')[0])">
+        <i class="ph-bold ph-arrow-left"></i>
+      </button>
+      <div class="title-group" style="text-align: center;">
+        <h3 id="trackBusTitle">BUS 1</h3>
+        <p>Google Maps Realtime</p>
+      </div>
+      <button class="icon-btn" onclick="openModal('supportModal')">
+        <i class="ph-bold ph-phone"></i>
+      </button>
+    </div>
+
+    <div id="trackingMap"></div>
+
+    <div class="simple-route-card">
+      <div class="simple-route-title" id="simpleRouteBus">BUS 1</div>
+      <div class="simple-route-text" id="simpleRouteText">Loading route...</div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS VIEW -->
+  <div class="view" id="notifView">
+    <div class="top-bar">
+      <button class="icon-btn" onclick="switchView('homeView', document.querySelectorAll('.nav-tab')[0])"><i class="ph-bold ph-arrow-left"></i></button>
+      <div class="title-group">
+        <h3>Bus Delay Alerts</h3>
+      </div>
+      <div style="width: 22px;"></div>
+    </div>
+    <div class="content-body">
+      <div id="notifList">
+        <div class="announce-card">
+          <h5>No Active Delays</h5>
+          <p>Everything is running as per scheduled timings.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" onclick="switchView('homeView', this)"><i class="ph-bold ph-house"></i><span>Home</span></button>
+    <button class="nav-tab" onclick="switchView('mapView', this)"><i class="ph-bold ph-navigation-arrow"></i><span>Live Map</span></button>
+    <button class="nav-tab" onclick="switchView('notifView', this)"><i class="ph-bold ph-bell"></i><span>Alerts</span></button>
+  </nav>
+
+</div>
+
+<!-- SUPPORT MODAL -->
+<div class="app-modal" id="supportModal">
+  <div class="app-modal-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <h4 style="font-size: 16px; font-weight: 700;"><i class="ph-bold ph-headset" style="color: var(--primary);"></i> Transport Helpline</h4>
+      <button class="icon-btn" onclick="closeModal('supportModal')"><i class="ph-bold ph-x"></i></button>
+    </div>
+    <div class="contact-item">
+      <div>
+        <h5 style="font-size: 14px; font-weight: 700;">Kishan Sir</h5>
+        <p style="font-size: 11px; color: var(--text-muted);">Transport Manager</p>
+      </div>
+      <a href="tel:+911234567890" class="btn-action-call"><i class="ph-bold ph-phone"></i> Call</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { db, ref, onValue, auth, signOut } from "./firebase-config.js";
+  import { AXIS_BUS_ROUTES } from "./bus-routes.js";
+
+  const session = JSON.parse(localStorage.getItem("campusride_user") || "null");
+  if (!session || session.role !== "student") {
+    window.location.href = "login.html";
+    throw new Error("Student session required");
+  }
+
+  window.logout = async function() {
+    try { await signOut(auth); } catch(e){}
+    localStorage.removeItem("campusride_user");
+    window.location.href = "login.html";
+  };
+
+  const assignedBus = session.busId || "BUS 1";
+  document.getElementById("heroName").innerText = `Welcome, ${session.name || session.id} 🎓`;
+  document.getElementById("heroRoute").innerText = `Assigned Bus: ${assignedBus}`;
+
+  let gMap = null, busMarker = null, userMarker = null;
+  let activeSelectedBus = assignedBus;
+  let activeBusLat = 26.4499, activeBusLng = 80.3319;
+  const busKeys = Object.keys(AXIS_BUS_ROUTES);
+
+  window.initGoogleMap = function() {
+    const center = { lat: activeBusLat, lng: activeBusLng };
+    gMap = new google.maps.Map(document.getElementById("trackingMap"), {
+      zoom: 14,
+      center,
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false
+    });
+
+    busMarker = new google.maps.Marker({
+      position: center,
+      map: gMap,
+      title: activeSelectedBus,
+      icon: {
+        url: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+        scaledSize: new google.maps.Size(38, 38),
+        anchor: new google.maps.Point(19, 19)
+      }
+    });
+
+    trackStudentDevice();
+  };
+
+  function trackStudentDevice() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.watchPosition(pos => {
+      const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      if (!userMarker && gMap) {
+        userMarker = new google.maps.Marker({
+          position: p,
+          map: gMap,
+          title: "You",
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 7,
+            fillColor: "#2563eb",
+            fillOpacity: 1,
+            strokeColor: "#ffffff",
+            strokeWeight: 2
+          }
+        });
+      } else if (userMarker) {
+        userMarker.setPosition(p);
+      }
+    }, err => console.warn(err.message), { enableHighAccuracy: true, maximumAge: 5000 });
+  }
+
+  function updateSimpleRouteText(busId) {
+    activeSelectedBus = busId;
+    const r = AXIS_BUS_ROUTES[busId];
+    document.getElementById("trackBusTitle").innerText = busId;
+    document.getElementById("simpleRouteBus").innerText = busId;
+    document.getElementById("simpleRouteText").innerText = r?.routeName || "Route information unavailable";
+  }
+
+  window.switchView = function(viewId, tabEl) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.getElementById(viewId).classList.add("active");
+    if (tabEl) {
+      document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+      tabEl.classList.add("active");
+    }
+    if (viewId === "mapView" && gMap) {
+      google.maps.event.trigger(gMap, "resize");
+      gMap.panTo({ lat: activeBusLat, lng: activeBusLng });
+    }
+  };
+
+  window.toggleDrawer = open => document.getElementById('drawerOverlay').classList.toggle('open', open);
+  window.openModal = id => document.getElementById(id).classList.add("active");
+  window.closeModal = id => document.getElementById(id).classList.remove("active");
+
+  function renderFleetCards() {
+    document.getElementById("busCardsList").innerHTML = busKeys.map(bId => {
+      const r = AXIS_BUS_ROUTES[bId], safeId = bId.replace(/\s+/g, '_');
+      return `
+        <div class="bus-card" onclick="selectAndTrackBus('${bId}')">
+          <div class="bus-icon-wrap off" id="icon_${safeId}"><i class="ph-bold ph-bus"></i></div>
+          <div class="bus-info">
+            <div class="bus-info-top">
+              <span class="bus-id">${bId}</span>
+              <span class="status-badge status-off" id="pill_${safeId}">OFFLINE</span>
+            </div>
+            <div class="bus-route">${r.routeName}</div>
+          </div>
+          <i class="ph-bold ph-caret-right" style="color:var(--text-muted);"></i>
+        </div>`;
+    }).join("");
+  }
+  renderFleetCards();
+
+  window.selectAndTrackBus = function(bId) {
+    activeSelectedBus = bId;
+    updateSimpleRouteText(bId);
+    window.switchView("mapView", document.querySelectorAll('.nav-tab')[1]);
+  };
+
+  onValue(ref(db, "buses"), snapshot => {
+    const buses = snapshot.val() || {};
+    busKeys.forEach(bId => {
+      const bus = buses[bId];
+      const safeId = bId.replace(/\s+/g, '_');
+      const pill = document.getElementById(`pill_${safeId}`);
+      const icon = document.getElementById(`icon_${safeId}`);
+
+      if (bus?.isActive) {
+        if (pill) { pill.className = "status-badge status-live"; pill.innerText = "LIVE"; }
+        if (icon) icon.className = "bus-icon-wrap";
+        if (bId === activeSelectedBus && Number.isFinite(Number(bus.latitude))) {
+          activeBusLat = Number(bus.latitude);
+          activeBusLng = Number(bus.longitude);
+          const pos = { lat: activeBusLat, lng: activeBusLng };
+          if (busMarker) busMarker.setPosition(pos);
+          if (gMap) gMap.panTo(pos);
+        }
+      } else {
+        if (pill) { pill.className = "status-badge status-off"; pill.innerText = "OFFLINE"; }
+        if (icon) icon.className = "bus-icon-wrap off";
+      }
+    });
+  });
+
+  onValue(ref(db, `announcements/${assignedBus}/latest`), snapshot => {
+    const d = snapshot.val();
+    if (d?.text) {
+      document.getElementById("topNotifBadge").style.display = "block";
+      document.getElementById("announceTitle").innerHTML = `${d.busId} Active Delay <span style='font-size:10px;color:var(--text-muted);'>${d.time || 'Recent'}</span>`;
+      document.getElementById("announceMsg").innerText = d.text;
+    }
+  });
+</script>
+</body>
+</html>

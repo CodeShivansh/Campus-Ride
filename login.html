@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CampusRide - Portal Login</title>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b1329; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .auth-card { background: #1e293b; width: 100%; max-width: 420px; padding: 32px 24px; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }
+    .brand { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 24px; font-weight: 700; color: #38bdf8; margin-bottom: 20px; }
+    .role-toggle { display: flex; background: #0f172a; border-radius: 12px; padding: 4px; margin-bottom: 20px; border: 1px solid #334155; }
+    .role-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: #94a3b8; background: transparent; transition: 0.2s; }
+    .role-btn.active { background: #2563eb; color: #fff; }
+    .mode-toggle { display: flex; justify-content: center; gap: 16px; margin-bottom: 20px; font-size: 13px; }
+    .mode-link { color: #38bdf8; text-decoration: none; cursor: pointer; font-weight: 600; }
+    .mode-link:hover { text-decoration: underline; }
+    .form-group { text-align: left; margin-bottom: 14px; }
+    label { display: block; font-size: 12px; color: #cbd5e1; margin-bottom: 6px; font-weight: 500; }
+    input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; font-size: 14px; outline: none; }
+    input:focus, select:focus { border-color: #38bdf8; }
+    .btn-submit { width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .msg-box { font-size: 12px; margin-top: 12px; display: none; padding: 10px; border-radius: 8px; font-weight: 600; }
+    .msg-error { background: #fee2e2; color: #dc2626; }
+    .msg-success { background: #dcfce7; color: #16a34a; }
+  </style>
+</head>
+<body>
+
+<div class="auth-card">
+  <div class="brand">
+    <i class="ph-bold ph-bus"></i>
+    <span>CampusRide</span>
+  </div>
+
+  <div class="role-toggle">
+    <button class="role-btn active" id="studentRoleBtn" onclick="setRole('student')">Student Portal</button>
+    <button class="role-btn" id="coordRoleBtn" onclick="setRole('coordinator')">Coordinator Portal</button>
+  </div>
+
+  <h3 id="formTitle" style="font-size: 18px; margin-bottom: 6px;">Student Login</h3>
+  <p id="formSub" style="font-size: 12px; color: #94a3b8; margin-bottom: 18px;">Sign in with your Roll Number and Password</p>
+
+  <form id="authForm" onsubmit="handleAuth(event)">
+    <div class="form-group" id="nameGroup" style="display: none;">
+      <label>Full Name</label>
+      <input type="text" id="fullName" placeholder="e.g. Rahul Sharma">
+    </div>
+
+    <div class="form-group">
+      <label id="idLabel">Student Roll Number</label>
+      <input type="text" id="userId" placeholder="e.g. 230123010001" required autocomplete="username">
+    </div>
+
+    <div class="form-group" id="coordBusGroup" style="display: none;">
+      <label>Select Assigned Bus</label>
+      <select id="assignedBus">
+        <option value="BUS 1">BUS 1 (Barasirohi - Kalyanpur - Rawatpur)</option>
+        <option value="BUS 2">BUS 2 (Shivam Palace - Kakadev - Mall Road)</option>
+        <option value="BUS 3">BUS 3 (Panki - Bhauti - Naubasta)</option>
+        <option value="BUS 4">BUS 4 (Gujaini - Kidwai Nagar - Yashoda Nagar)</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="masterPinGroup" style="display: none;">
+      <label style="color: #38bdf8; font-weight: 700;">Coordinator Master Passcode</label>
+      <input type="password" id="masterPasscode" placeholder="Enter registration passcode">
+    </div>
+
+    <div class="form-group">
+      <label id="passLabel">Password</label>
+      <input type="password" id="userPass" placeholder="••••••••" required autocomplete="current-password">
+    </div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">Sign In</button>
+  </form>
+
+  <div class="msg-box" id="msgBox"></div>
+
+  <div class="mode-toggle" style="margin-top: 18px;">
+    <span id="modePrompt" style="color: #94a3b8;">First time here?</span>
+    <a class="mode-link" id="modeToggleLink" onclick="toggleAuthMode()">Create New Account</a>
+  </div>
+</div>
+
+<script type="module">
+  import { 
+    auth, 
+    db, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    ref, 
+    set, 
+    get, 
+    child 
+  } from "./firebase-config.js";
+
+  let currentRole = "student";
+  let isRegistering = false;
+
+  window.setRole = function(role) {
+    currentRole = role;
+    document.getElementById("studentRoleBtn").classList.toggle("active", role === "student");
+    document.getElementById("coordRoleBtn").classList.toggle("active", role === "coordinator");
+    document.getElementById("idLabel").innerText = role === "student" ? "Student Roll Number" : "Coordinator / Faculty ID";
+    document.getElementById("userId").placeholder = role === "student" ? "e.g. 230123010001" : "e.g. AXIS_COORD_01";
+    updateFormUI();
+  };
+
+  window.toggleAuthMode = function() {
+    isRegistering = !isRegistering;
+    updateFormUI();
+  };
+
+  function updateFormUI() {
+    const roleName = currentRole === "student" ? "Student" : "Coordinator";
+    document.getElementById("formTitle").innerText = isRegistering ? `Create ${roleName} Account` : `${roleName} Login`;
+    document.getElementById("formSub").innerText = isRegistering ? "Register your ID and configure access" : "Sign in with your registered credentials";
+    document.getElementById("nameGroup").style.display = isRegistering ? "block" : "none";
+    document.getElementById("coordBusGroup").style.display = (isRegistering && currentRole === "coordinator") ? "block" : "none";
+    document.getElementById("masterPinGroup").style.display = (isRegistering && currentRole === "coordinator") ? "block" : "none";
+    document.getElementById("submitBtn").innerText = isRegistering ? "Register & Enter" : "Sign In";
+    document.getElementById("modePrompt").innerText = isRegistering ? "Already registered?" : "First time here?";
+    document.getElementById("modeToggleLink").innerText = isRegistering ? "Sign In instead" : "Create New Account";
+    document.getElementById("msgBox").style.display = "none";
+  }
+
+  window.handleAuth = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+
+    const rawId = document.getElementById("userId").value.trim().toUpperCase();
+    const cleanId = rawId.replace(/[^A-Z0-9_]/g, "");
+    const pass = document.getElementById("userPass").value.trim();
+    const name = document.getElementById("fullName").value.trim();
+    const bus = document.getElementById("assignedBus").value;
+
+    const email = `${cleanId.toLowerCase()}@campusride.axis.edu`;
+
+    try {
+      if (isRegistering) {
+        if (currentRole === "coordinator") {
+          const pin = document.getElementById("masterPasscode").value.trim();
+          if (pin !== "AXIS@2026") {
+            throw new Error("Invalid Coordinator Master Passcode! Contact Transport Department.");
+          }
+        }
+
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        const profile = {
+          uid: cred.user.uid,
+          id: rawId,
+          name: name || rawId,
+          role: currentRole,
+          busId: currentRole === "coordinator" ? bus : "BUS 1",
+          createdAt: new Date().toISOString()
+        };
+
+        await set(ref(db, `users/${currentRole}s/${cred.user.uid}`), profile);
+        localStorage.setItem("campusride_user", JSON.stringify(profile));
+        showMsg("Account created! Redirecting...", "success");
+        setTimeout(() => window.location.href = currentRole === "coordinator" ? "coordinator.html" : "index.html", 700);
+
+      } else {
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        const snap = await get(child(ref(db), `users/${currentRole}s/${cred.user.uid}`));
+
+        if (!snap.exists()) {
+          throw new Error(`This account is not registered under the ${currentRole} portal.`);
+        }
+
+        const profile = snap.val();
+        localStorage.setItem("campusride_user", JSON.stringify(profile));
+        showMsg("Authentication verified. Redirecting...", "success");
+        setTimeout(() => window.location.href = currentRole === "coordinator" ? "coordinator.html" : "index.html", 600);
+      }
+    } catch (err) {
+      showMsg(err.message.replace("Firebase: ", ""), "error");
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  function showMsg(text, type) {
+    const msgBox = document.getElementById("msgBox");
+    msgBox.innerText = text;
+    msgBox.className = `msg-box msg-${type}`;
+    msgBox.style.display = "block";
+  }
+</script>
+</body>
+</html>
